@@ -3,6 +3,8 @@ using CommunityToolkit.Mvvm.Input;
 using KitapTakipMauii.Models.Dtos;
 using KitapTakipMauii.Services;
 using KitapTakipMauii.Pages;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace KitapTakipMauii.ViewModels;
 
@@ -20,7 +22,13 @@ public partial class UserBookDetailViewModel : ObservableObject
     [ObservableProperty]
     private bool isNotBusy = true;
 
-    public UserBookDetailViewModel(ApiService apiService, int bookId)
+	[ObservableProperty]
+	private bool canEditNotes;
+
+	[ObservableProperty]
+	private string notes;
+
+	public UserBookDetailViewModel(ApiService apiService, int bookId)
     {
         _apiService = apiService;
         _bookId = bookId;
@@ -37,7 +45,10 @@ public partial class UserBookDetailViewModel : ObservableObject
             if (response.Success && response.Data != null)
             {
                 Book = response.Data;
-            }
+				Notes = Book.Notes ?? string.Empty; // Notlar null ise boş
+				Console.WriteLine($"Book.Id: {Book.Id}, Book.UserId: {Book.UserId}, Notes: {Notes}");
+				await CheckUserAuthorizationAsync();
+			}
             else
             {
                 await Shell.Current.DisplayAlert("Hata", response.Message ?? "Kitap yüklenemedi.", "Tamam");
@@ -53,7 +64,93 @@ public partial class UserBookDetailViewModel : ObservableObject
         }
     }
 
-    [RelayCommand]
+
+	private async Task CheckUserAuthorizationAsync()
+	{
+		try
+		{
+			var token = await _apiService.GetTokenAsync();
+			if (string.IsNullOrEmpty(token))
+			{
+				CanEditNotes = false;
+				Console.WriteLine("Token boş, CanEditNotes: false");
+				return;
+			}
+
+			var handler = new JwtSecurityTokenHandler();
+			var jwtToken = handler.ReadJwtToken(token);
+			var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+			if (string.IsNullOrEmpty(userId))
+			{
+				CanEditNotes = false;
+				Console.WriteLine("Token'da userId bulunamadı, CanEditNotes: false");
+				return;
+			}
+
+			if (string.IsNullOrEmpty(Book.UserId))
+			{
+				CanEditNotes = false;
+				Console.WriteLine("Book.UserId boş, CanEditNotes: false");
+				return;
+			}
+
+			CanEditNotes = userId == Book.UserId;
+			Console.WriteLine($"Token UserId: {userId}, Book.UserId: {Book.UserId}, CanEditNotes: {CanEditNotes}");
+		}
+		catch (Exception ex)
+		{
+			CanEditNotes = false;
+			await Shell.Current.DisplayAlert("Hata", $"Yetki kontrolü sırasında hata: {ex.Message}", "Tamam");
+			Console.WriteLine($"Yetki kontrolü hatası: {ex.Message}");
+		}
+	}
+
+	[RelayCommand]
+	private async Task SaveNoteAsync()
+	{
+		if (!CanEditNotes)
+		{
+			await Shell.Current.DisplayAlert("Hata", "Bu kitaba not ekleme/düzenleme yetkiniz yok.", "Tamam");
+			return;
+		}
+
+		IsBusy = true;
+		IsNotBusy = false;
+
+		try
+		{
+			var noteDto = new BookUpdateNoteDto
+			{
+				Id = _bookId,
+				Notes = Notes
+			};
+
+			var response = await _apiService.UpdateBookNoteAsync(_bookId, noteDto);
+			if (response.Success && response.Data != null)
+			{
+				Book = response.Data;
+				Notes = Book.Notes ?? string.Empty;
+				await Shell.Current.DisplayAlert("Başarılı", "Not başarıyla kaydedildi.", "Tamam");
+			}
+			else
+			{
+				await Shell.Current.DisplayAlert("Hata", response.Message, "Tamam");
+			}
+		}
+		catch (Exception ex)
+		{
+			await Shell.Current.DisplayAlert("Hata", $"Not kaydedilirken hata: {ex.Message}", "Tamam");
+		}
+		finally
+		{
+			IsBusy = false;
+			IsNotBusy = true;
+		}
+	}
+
+
+	[RelayCommand]
     private async Task EditBookAsync()
     {
         await Shell.Current.Navigation.PushAsync(new EditBookPage(new EditBookViewModel(_apiService, _bookId)));
@@ -91,4 +188,19 @@ public partial class UserBookDetailViewModel : ObservableObject
             IsNotBusy = true;
         }
     }
+
+	[RelayCommand]
+	private async Task BackAsync()
+	{
+		try
+		{
+			await Shell.Current.GoToAsync("///MyBooksPage");
+		}
+		catch (Exception ex)
+		{
+			await Shell.Current.DisplayAlert("Hata", $"Geri dönüş hatası: {ex.Message}", "Tamam");
+		}
+	}
+
+
 }

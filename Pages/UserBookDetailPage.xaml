@@ -1,9 +1,18 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:KitapTakipMauii.Converters"
              x:Class="KitapTakipMauii.Pages.UserBookDetailPage"
              Title="Kitap Detayı"
              BackgroundColor="#F5F5F5">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+
     <ScrollView Padding="15">
         <Grid RowSpacing="15">
             <Grid.RowDefinitions>
@@ -98,6 +107,40 @@
                            LineBreakMode="WordWrap"
                            MaxLines="10" />
                 </StackLayout>
+            </Frame>
+
+            <!-- Notlar (Her zaman görünür, yetkilendirmeye bağlı aktif/pasif) -->
+            <Frame Grid.Row="5"
+       Padding="10"
+       CornerRadius="5"
+       BackgroundColor="White"
+       HasShadow="False"
+       Margin="0,10,0,0">
+                <VerticalStackLayout Spacing="5">
+                    <Label Text="Notlarım"
+               FontSize="18"
+               FontAttributes="Bold"
+               TextColor="#333333" />
+                    <Editor Text="{Binding Notes, Mode=TwoWay}"
+                IsEnabled="{Binding CanEditNotes}"
+                AutoSize="TextChanges"
+                Placeholder="Notlarınızı buraya yazabilirsiniz..."
+                FontSize="14"
+                BackgroundColor="#FAFAFA"
+                TextColor="#333"
+                HeightRequest="120"
+                IsReadOnly="{Binding CanEditNotes, Converter={StaticResource InverseBooleanConverter}}" />
+                    <Button Text="Kaydet"
+                Command="{Binding SaveNoteCommand}"
+                IsEnabled="{Binding CanEditNotes}"
+                BackgroundColor="#2196F3"
+                TextColor="White"
+                CornerRadius="10"
+                Padding="10"
+                FontAttributes="Bold"
+                HorizontalOptions="Center"
+                WidthRequest="120" />
+                </VerticalStackLayout>
             </Frame>
         </Grid>
     </ScrollView>

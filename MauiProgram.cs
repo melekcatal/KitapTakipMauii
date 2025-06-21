@@ -34,6 +34,7 @@ public static class MauiProgram
         builder.Services.AddTransient<BookDetailViewModel>();
         builder.Services.AddTransient<MyBooksPageViewModel>();
         builder.Services.AddTransient<UserBookDetailViewModel>();
+        builder.Services.AddTransient<BookContentViewModel>();
 
         // Page kayıtları
         builder.Services.AddTransient<Pages.LoginPage>();
@@ -47,9 +48,10 @@ public static class MauiProgram
         builder.Services.AddTransient<AdminPanelViewModel>();
         builder.Services.AddTransient<AdminPanel>();
         builder.Services.AddTransient<MyBooksPage>();
+		builder.Services.AddTransient<Pages.BookContent>();
 
 #if DEBUG
-        builder.Logging.AddDebug();
+		builder.Logging.AddDebug();
 #endif
 
         return builder.Build();

@@ -39,6 +39,9 @@
     </ShellContent>
 
 
+    <ShellContent Route="BookContent"
+              ContentTemplate="{DataTemplate pages:BookContent}" />
+
     <ShellContent Route="AdminPanel"
-              ContentTemplate="{DataTemplate pages:AdminPanel}" />
+          ContentTemplate="{DataTemplate pages:AdminPanel}" />
 </Shell>

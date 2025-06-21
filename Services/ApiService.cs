@@ -177,7 +177,42 @@ public class ApiService
         return await response.Content.ReadFromJsonAsync<ApiResponse<BookDto>>();
     }
 
-    public async Task<ApiResponse<List<BookDto>>> GetAllBooksAsync() // Yeni eklenen metod
+
+
+	public async Task<ApiResponse<BookDto>> GetBookPublicByIdAsync(int id)
+	{
+		try
+		{
+			var response = await _httpClient.GetAsync($"books/public/{id}");
+			if (!response.IsSuccessStatusCode)
+			{
+				return new ApiResponse<BookDto>
+				{
+					Success = false,
+					Message = $"İstek başarısız: {response.ReasonPhrase}",
+					Data = null
+				};
+			}
+
+		
+	    return await response.Content.ReadFromJsonAsync<ApiResponse<BookDto>>() ?? new ApiResponse<BookDto>
+	    {
+		    Success = false,
+		    Message = "Veri çözümlenemedi.",
+		    Data = null
+	    };
+		    }
+		    catch (Exception ex)
+		    {
+			    return new ApiResponse<BookDto>
+			    {
+				    Success = false,
+				    Message = $"Kitap getirilemedi: {ex.Message}",
+				    Data = null
+			    };
+		    }
+	}
+	public async Task<ApiResponse<List<BookDto>>> GetAllBooksAsync() // Yeni eklenen metod
     {
         try
         {
@@ -210,7 +245,57 @@ public class ApiService
         return await response.Content.ReadFromJsonAsync<ApiResponse<BookDto>>();
     }
 
-    public async Task<ApiResponse<bool>> DeleteBookAsync(int id)
+
+	// KitapTakipMauii/Services/ApiService.cs
+	public async Task<ApiResponse<BookDto>> UpdateBookNoteAsync(int id, BookUpdateNoteDto noteDto)
+	{
+		var token = await GetTokenAsync();
+		if (string.IsNullOrEmpty(token))
+		{
+			return new ApiResponse<BookDto>
+			{
+				Success = false,
+				Message = "Oturum açılmamış. Lütfen giriş yapın.",
+				Data = null
+			};
+		}
+
+		await SetTokenAsync(token);
+		try
+		{
+			var response = await _httpClient.PatchAsJsonAsync($"/api/books/{id}/note", noteDto);
+			if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+			{
+				return new ApiResponse<BookDto>
+				{
+					Success = false,
+					Message = "Yetkisiz erişim: Geçersiz veya eksik token.",
+					Data = null
+				};
+			}
+			if (!response.IsSuccessStatusCode)
+			{
+				return new ApiResponse<BookDto>
+				{
+					Success = false,
+					Message = $"Not güncellenemedi: {response.ReasonPhrase}",
+					Data = null
+				};
+			}
+			return await response.Content.ReadFromJsonAsync<ApiResponse<BookDto>>();
+		}
+		catch (Exception ex)
+		{
+			return new ApiResponse<BookDto>
+			{
+				Success = false,
+				Message = $"Not güncellenirken hata: {ex.Message}",
+				Data = null
+			};
+		}
+	}
+
+	public async Task<ApiResponse<bool>> DeleteBookAsync(int id)
     {
         var response = await _httpClient.DeleteAsync($"books/{id}");
         return await response.Content.ReadFromJsonAsync<ApiResponse<bool>>();

@@ -116,9 +116,27 @@ public partial class EditBookViewModel : ObservableObject
         }
     }
 
-    [RelayCommand]
-    private async Task CancelAsync()
-    {
-        await Shell.Current.GoToAsync("..");
-    }
+	[RelayCommand]
+	private async Task CancelAsync()
+	{
+		try
+		{
+			// Navigasyon yığınını logla
+			var navStack = Shell.Current.Navigation.NavigationStack;
+			Console.WriteLine("Navigation Stack:");
+			foreach (var page in navStack)
+			{
+				Console.WriteLine(page?.GetType().Name);
+			}
+
+			// MyBooksPage'e git
+			await Shell.Current.GoToAsync("//MyBooksPage");
+			Console.WriteLine("Navigated to MyBooksPage successfully.");
+		}
+		catch (Exception ex)
+		{
+			await Shell.Current.DisplayAlert("Hata", $"Navigasyon hatası: {ex.Message}", "Tamam");
+			Console.WriteLine($"Navigation error: {ex.Message}");
+		}
+	}
 }
