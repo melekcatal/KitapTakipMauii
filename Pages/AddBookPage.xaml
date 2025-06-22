@@ -2,7 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="KitapTakipMauii.Pages.AddBookPage"
              Title="Yeni Kitap Ekle">
-
+    <ScrollView>
     <VerticalStackLayout Padding="20" Spacing="15">
         <Entry x:Name="TitleEntry" Placeholder="Kitap Başlığı" />
         <Entry x:Name="AuthorEntry" Placeholder="Yazar" />
@@ -10,6 +10,24 @@
         <Entry x:Name="DescriptionEntry" Placeholder="Açıklama" />
         <Entry x:Name="GenreEntry" Placeholder="Tür" />
         <Entry x:Name="ImageUrlEntry" Placeholder="Kapak Resmi URL" />
-        <Button Text="Kaydet" Clicked="OnSaveClicked" />
+        <!-- Başlangıç Tarihi DatePicker -->
+        <Label Text="Başlangıç Tarihi" />
+        <DatePicker x:Name="StartDatePicker" 
+                    Format="dd/MM/yyyy" 
+                    MinimumDate="01/01/1900" 
+                    MaximumDate="12/31/2100"
+                    DateSelected="OnStartDateSelected" />
+        <!-- Bitiş Tarihi DatePicker -->
+        <Label Text="Bitiş Tarihi" />
+        <DatePicker x:Name="EndDatePicker" 
+                    Format="dd/MM/yyyy" 
+                    MinimumDate="01/01/1900" 
+                    MaximumDate="12/31/2100"
+                    DateSelected="OnEndDateSelected" />
+        <!-- Kaydet Butonu -->
+        <Button x:Name="SaveButton" 
+                Text="Kaydet" 
+                Clicked="OnSaveClicked" />
     </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>

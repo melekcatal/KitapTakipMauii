@@ -26,5 +26,7 @@ namespace KitapTakipMauii.Models.Dtos
         public string? Description { get; set; }
         public int? PageCount { get; set; }
         public string CoverImage { get; set; }
+        public DateTime? StartDate { get; set; } // Başlangıç tarihi
+        public DateTime? EndDate { get; set; }   // Bitiş tarihi
     }
 }
